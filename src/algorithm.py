@@ -6,7 +6,7 @@ savings = []
 def find_min_cost():
     global nr_dividers, costs, savings
     nr_dividers, costs = read_input()
-    savings = [[None] * len(costs)] * len(costs)
+    savings = [[None for i in range(len(costs))] for j in range(len(costs))]
     total_cost = sum(costs)
 
     # Remove multiples of 5
@@ -29,23 +29,24 @@ def read_input():
 
 def saving_money(i, j, d):
     # Memoization step:
+    # print(savings)
     if savings[i][j] is not None and d < nr_dividers:
-        print(f'i={i},j={j},savings={savings[i][j]}')
+        # print(f'i={i},j={j},savings={savings[i][j]}')
         return savings[i][j]
     # Base case 1
     if d >= nr_dividers:
         cost_sum = sum(costs[i:j + 1])
-        print(f'case 1, d = nr_dividers: {d} = {nr_dividers}, returning {cost_sum - round5(cost_sum)}')
+        # print(f'case 1, d = nr_dividers: {d} = {nr_dividers}, returning {cost_sum - round5(cost_sum)}')
         return cost_sum - round5(cost_sum)
     # Base case 2
     if i == j:
-        print(f'case 2, i == j: {i} = {j}, returning {costs[i] - round5(costs[i])}')
+        # print(f'case 2, i == j: {i} = {j}, returning {costs[i] - round5(costs[i])}')
         savings[i][j] = costs[i] - round5(costs[i])
         return savings[i][j]
     # Base case 3
     if i == j - 1:
         cost_sum = costs[i] + costs[j]
-        print(f'case 3, i == j - 1: {i} = {j - 1}, returning {max(cost_sum - round5(cost_sum), cost_sum - (round5(costs[i]) + round5(costs[j])))}')
+        # print(f'case 3, i == j - 1: {i} = {j - 1}, returning {max(cost_sum - round5(cost_sum), cost_sum - (round5(costs[i]) + round5(costs[j])))}')
         savings[i][j] = max(cost_sum - round5(cost_sum), cost_sum - (round5(costs[i]) + round5(costs[j])))
         return savings[i][j]
     # Recursive case
@@ -55,13 +56,13 @@ def saving_money(i, j, d):
         if k == j:
             cost_sum = sum(costs[i:j + 1])
             val = cost_sum - round5(cost_sum)
-            print(f'k == j, summing all: {val}')
+            # print(f'k == j, summing all: {val}')
         else:
             val = saving_money(i, k, d + 1) + saving_money(k + 1, j, d + 1)
-            print(f'k < j, result of recursion: {val}')
+            # print(f'k < j, result of recursion: {val}')
         max_val = max(val, max_val)
-        print(f'best so far: {max_val}')
-    print(f'best solution: {max_val}')
+        # print(f'best so far: {max_val}')
+    # print(f'best solution: {max_val}')
     savings[i][j] = max_val
     return max_val
 
