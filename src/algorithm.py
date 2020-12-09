@@ -17,6 +17,7 @@ def find_min_cost():
     saved, used = saving_money(0, len(costs) - 1, 0)
     # print(f'saved: {saved}')
     # print(f'used: {used}', file=sys.stderr)
+    print(counter)
     return total_cost - saved
 
 def read_input():
@@ -40,11 +41,12 @@ def saving_money(i, j, d):
         # print(f'i={i},j={j},savings={savings[(i,j)]}')
         max_pair = (-2,0)
         max_found = False
-        print(len(savings[(i,j)]))
+        # print(len(savings[(i,j)]))
         for (cost, dividers) in savings[(i,j)]:
-            if cost > max_pair[0] and dividers >= (nr_dividers - d):
+            if cost > max_pair[0] and dividers <= (nr_dividers - d):
                 max_pair = cost, dividers
                 # print("hiiiiiii")
+                # print(f'({i},{j}): {cost}; dividers={dividers}, nr_dividers={nr_dividers}, d={d}')
                 max_found = True
         if max_found:
             return max_pair
