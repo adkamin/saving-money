@@ -3,6 +3,7 @@ import sys
 nr_dividers = 0
 costs = []
 savings = {}
+counter = 0
 
 
 def find_min_cost():
@@ -31,13 +32,15 @@ def read_input():
 
 
 def saving_money(i, j, d):
-    # print(savings)
-
+    global counter
+    counter += 1
+    # print(counter)
     # Memoization step:
     if (i,j) in savings:
         # print(f'i={i},j={j},savings={savings[(i,j)]}')
         max_pair = (-2,0)
         max_found = False
+        print(len(savings[(i,j)]))
         for (cost, dividers) in savings[(i,j)]:
             if cost > max_pair[0] and dividers >= (nr_dividers - d):
                 max_pair = cost, dividers
@@ -75,17 +78,17 @@ def saving_money(i, j, d):
             if (i,j) in savings:
                 savings[(i,j)].append((without_divider, 0))
             else:
-                savings[(i,j)] = [(with_divider, 1)]
-            return with_divider, 1
+                savings[(i,j)] = [(without_divider, 0)]
+            return with_divider, 0
         else:
             if (i,j) in savings:
-                savings[(i,j)].append((without_divider, 0))
+                savings[(i,j)].append((with_divider, 1))
             else:
-                savings[(i,j)] = [(without_divider, 0)]
-            return without_divider, 0
+                savings[(i,j)] = [(with_divider, 1)]
+            return without_divider, 1
 
     # Recursive case
-    max_pair = pair = (0,0)
+    max_pair = (-2,0)
     for k in range(i, j + 1):
         if k == j:
             cost_sum = sum(costs[i:j + 1])
@@ -100,12 +103,14 @@ def saving_money(i, j, d):
             pair = (first[0] + second[0], first[1] + second[1] + 1)
         if pair[0] > max_pair[0]:
             max_pair = pair
-    savings[(i,j)] = [max_pair]
+    if (i,j) in savings:
+        savings[(i,j)].append(max_pair)
+    else:
+        savings[(i,j)] = [max_pair]
     # print(f' max pair: {max_pair}')
     return max_pair  # tuple of money saved and dividers used
 
 def round5(x):
     return 5 * round(x / 5)
-    
 
 
