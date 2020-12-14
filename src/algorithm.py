@@ -7,8 +7,10 @@ counter = 0
 
 
 def find_min_cost():
-    global nr_dividers, costs, savings
+    global nr_dividers, costs, savings, counter
     nr_dividers, costs = read_input()
+    savings = {}
+    counter = 0
     total_cost = sum(costs)
 
     # Remove multiples of 5
@@ -17,7 +19,7 @@ def find_min_cost():
     saved, used = saving_money(0, len(costs) - 1, 0)
     # print(f'saved: {saved}')
     # print(f'used: {used}', file=sys.stderr)
-    print(counter)
+    print(f'c={counter}, u={used}')
     return total_cost - saved
 
 def read_input():
@@ -37,24 +39,24 @@ def saving_money(i, j, d):
     counter += 1
     # print(counter)
     # Memoization step:
-    if (i,j) in savings:
-        # print(f'i={i},j={j},savings={savings[(i,j)]}')
-        max_pair = (-2,0)
-        max_found = False
-        # print(len(savings[(i,j)]))
-        for (cost, dividers) in savings[(i,j)]:
-            if cost > max_pair[0] and dividers <= (nr_dividers - d):
-                max_pair = cost, dividers
-                # print("hiiiiiii")
-                # print(f'({i},{j}): {cost}; dividers={dividers}, nr_dividers={nr_dividers}, d={d}')
-                max_found = True
-        if max_found:
-            return max_pair
+    # if (i,j) in savings:
+    #     print(f'i={i},j={j},savings={savings[(i,j)]}')
+    #     max_pair = (-2,0)
+    #     max_found = False
+    #     # print(len(savings[(i,j)]))
+    #     for (cost, dividers) in savings[(i,j)]:
+    #         if cost > max_pair[0] and dividers <= (nr_dividers - d):
+    #             max_pair = cost, dividers
+    #             # print("hiiiiiii")
+    #             # print(f'({i},{j}): {cost}; dividers={dividers}, nr_dividers={nr_dividers}, d={d}')
+    #             max_found = True
+    #     if max_found:
+    #         return max_pair
 
     # Base case 1
     if d >= nr_dividers:
         cost_sum = sum(costs[i:j + 1])
-        # print(f'case 1, d = nr_dividers: {d} = {nr_dividers}, returning {cost_sum - round5(cost_sum)}')
+        print(f'case 1, d = nr_dividers: {d} = {nr_dividers}, returning {cost_sum - round5(cost_sum)}')
         if (i,j) in savings:
             savings[(i,j)].append((cost_sum - round5(cost_sum), 0))
         else:
@@ -63,7 +65,7 @@ def saving_money(i, j, d):
 
     # Base case 2
     if i == j:
-        # print(f'case 2, i == j: {i} = {j}, returning {costs[i] - round5(costs[i])}')
+        print(f'case 2, i == j: {i} = {j}, returning {costs[i] - round5(costs[i])}')
         if (i,j) in savings:
             savings[(i,j)].append((costs[i] - round5(costs[i]), 0))
         else:
@@ -72,22 +74,22 @@ def saving_money(i, j, d):
 
     # Base case 3
     if i == j - 1:
-        # print("case 3")
+        print("case 3")
         cost_sum = costs[i] + costs[j]
         with_divider = cost_sum - (round5(costs[i]) + round5(costs[j]))
         without_divider = cost_sum - round5(cost_sum)
         if with_divider > without_divider:
             if (i,j) in savings:
-                savings[(i,j)].append((without_divider, 0))
+                savings[(i,j)].append((without_divider, 1))
             else:
-                savings[(i,j)] = [(without_divider, 0)]
-            return with_divider, 0
+                savings[(i,j)] = [(without_divider, 1)]
+            return with_divider, 1
         else:
             if (i,j) in savings:
-                savings[(i,j)].append((with_divider, 1))
+                savings[(i,j)].append((with_divider, 0))
             else:
-                savings[(i,j)] = [(with_divider, 1)]
-            return without_divider, 1
+                savings[(i,j)] = [(with_divider, 0)]
+            return without_divider, 0
 
     # Recursive case
     max_pair = (-2,0)
@@ -95,21 +97,22 @@ def saving_money(i, j, d):
         if k == j:
             cost_sum = sum(costs[i:j + 1])
             pair = (cost_sum - round5(cost_sum), 0)
-            # print(f'k == j,')
+            print(f'k == j, {pair}')
         else:
-            # print(f'k < j')
+            print(f'k < j')
             first = saving_money(i, k, d + 1)
-            # print(f'first: {first}')
+            print(f'first: {first}')
             second = saving_money(k + 1, j, d + 1)
-            # print(f'second: {second}')
+            print(f'second: {second}')
             pair = (first[0] + second[0], first[1] + second[1] + 1)
-        if pair[0] > max_pair[0]:
+            print(f'total: {pair}')
+        if pair[0] > max_pair[0] or (pair[0] == max_pair[0] and pair[1] > max_pair[1]):
             max_pair = pair
     if (i,j) in savings:
         savings[(i,j)].append(max_pair)
     else:
         savings[(i,j)] = [max_pair]
-    # print(f' max pair: {max_pair}')
+    print(f' max pair: {max_pair}')
     return max_pair  # tuple of money saved and dividers used
 
 def round5(x):
