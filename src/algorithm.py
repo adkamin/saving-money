@@ -32,8 +32,6 @@ def saving_money(i, j, d):
 
     # Memoization step:
     if (i,j) in savings:
-        if debug:
-            print(f'i={i},j={j},savings={savings[(i,j)]}', file=sys.stderr)
         max_pair = (-2,0)
         max_found = False
         for cost in savings[(i,j)]:
@@ -46,22 +44,16 @@ def saving_money(i, j, d):
     # Base case 1
     if d >= nr_dividers:
         cost_sum = sum(costs[i:j + 1])
-        if debug:
-            print(f'case 1, d = nr_dividers: {d} = {nr_dividers}, returning {cost_sum - round5(cost_sum)}', file=sys.stderr)
         append_savings(i, j, cost_sum - round5(cost_sum), 0)
         return cost_sum - round5(cost_sum), 0
 
     # Base case 2
     if i == j:
-        if debug:
-            print(f'case 2, i == j: {i} = {j}, returning {costs[i] - round5(costs[i])}', file=sys.stderr)
         append_savings(i, j, costs[i] - round5(costs[i]), 0)
         return costs[i] - round5(costs[i]), 0
 
     # Base case 3
     if i == j - 1:
-        if debug:
-            print("case 3", file=sys.stderr)
         cost_sum = costs[i] + costs[j]
         with_divider = cost_sum - (round5(costs[i]) + round5(costs[j]))
         without_divider = cost_sum - round5(cost_sum)
@@ -78,25 +70,16 @@ def saving_money(i, j, d):
         if k == j:
             cost_sum = sum(costs[i:j + 1])
             pair = (cost_sum - round5(cost_sum), 0)
-            if debug:
-                print(f'k == j, {pair}', file=sys.stderr)
         else:
-            if debug:
-                print(f'k < j', file=sys.stderr)
             first = saving_money(i, k, d + 1)
-            if debug:
-                print(f'first: {first}', file=sys.stderr)
             second = saving_money(k + 1, j, d + 1 + first[1])
-            if debug:
-                print(f'second: {second}', file=sys.stderr)
             pair = (first[0] + second[0], first[1] + second[1] + 1)
-            if debug:
-                print(f'total: {pair}', file=sys.stderr)
         if pair[0] > max_pair[0] or (pair[0] == max_pair[0] and pair[1] < max_pair[1]):
             max_pair = pair
+            if max_pair[0] >= ((nr_dividers-d)+1)*2:
+                break
+            
     append_savings(i, j, max_pair[0], max_pair[1])
-    if debug:
-        print(f' max pair: {max_pair}', file=sys.stderr)
     return max_pair # tuple of money saved and dividers used
 
 def round5(x):
