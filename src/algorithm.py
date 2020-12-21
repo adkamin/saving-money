@@ -1,5 +1,7 @@
 import sys
+import random
 
+nr_products = 0
 nr_dividers = 0
 costs = []
 savings = {}
@@ -8,23 +10,87 @@ counter = 0
 debug = False
 
 def find_min_cost():
-    global nr_dividers, costs, savings, counter
-    nr_dividers, costs = read_input()
+    global nr_products, nr_dividers, costs, savings, counter
+    # nr_products, nr_dividers, costs = read_input()
+    nr_products, nr_dividers, costs = randomizer()
     savings = {}
     counter = 0
     total_cost = sum(costs)
 
     # Remove multiples of 5
     costs = list(filter(lambda x: x % 5, costs))
+    print(costs)
 
-    saved, used = saving_money(0, len(costs) - 1, 0)
-    print(f'c={counter}, u={used}', file=sys.stderr)
+    # saved, used = saving_money(0, len(costs) - 1, 0)
+    saved = saving_money_3()
+    # saved1 = saving_money_2()
+    # saved2, used = saving_money(0, len(costs) - 1, 0)
+    # print(f'c={counter}, u={used}', file=sys.stderr)
+    # print(f'{saved1} and {saved2}')
     return total_cost - saved
 
 def read_input():
     nr_products, nr_dividers = [int(d) for d in input().split(' ')]
     costs = [int(c) for c in input().split(' ')]
-    return nr_dividers, costs
+    return nr_products, nr_dividers, costs
+
+def randomizer():
+    nr_products = random.randint(10, 10)
+    nr_dividers = random.randint(1, 9)
+    costs = [random.randint(1, 20) for a in range(nr_products)]
+    print(f'nr_products: {nr_products}')
+    print(f'nr_dividers: {nr_dividers}')
+    # print(costs)
+    return nr_products, nr_dividers, costs
+
+def saving_money_3():
+    # [(2, 3), (3, 5)] save 2 cents. length is at most n*(n-1)/2
+    # [(4, 5), (6, 7)] save 1 cent
+    # [(4, 5), (6, 7)] save 0 cents
+    # [(4, 5), (6, 7)] save -1 cents
+    # [(4, 5), (6, 7)] save -2 cents
+
+    slices = {2: [], 1: [], 0: [], -1: [], -2: []}
+    
+    for size in range(1, nr_products + 1):
+        for start_point in range(0, nr_products):
+            if start_point + size < nr_products:
+                cost_sum = sum(costs[start_point:start_point+size])
+                saved = cost_sum - round5(cost_sum)
+                slices[saved].append((start_point, start_point+size-1))
+
+    print(slices)
+    
+    return 0
+            
+
+def saving_money_2():
+    used_dividers = 0
+    current_best = 2
+    current_saved = 0
+    last_div_location = 0
+
+    while used_dividers < nr_dividers and current_best > 0:
+        for i in range(last_div_location, nr_products):
+            cost_sum = sum(costs[last_div_location:i+1])
+            saved = cost_sum - round5(cost_sum)
+            cost_rest = sum(costs[last_div_location:])
+            saved_rest = cost_rest - round5(cost_rest)
+            if saved_rest > saved:
+                continue
+            # print(f'saved={saved}, i={i}, saved_rest={saved_rest}')
+            if saved >= current_best:
+                current_saved += saved
+                used_dividers += 1
+                last_div_location = i+1
+                # print(f'div location={last_div_location}')
+                if used_dividers >= nr_dividers:
+                    # print("break")
+                    break
+        current_best -= 1
+
+    remaining_sum = sum(costs[last_div_location:])
+    return current_saved + (remaining_sum - round5(remaining_sum))
 
 def saving_money(i, j, d):
     global counter
@@ -94,7 +160,3 @@ def append_savings(i, j, c, d):
             savings[(i, j)][c] = d
     else:
         savings[(i, j)] = {c: d}
-                
-
-
-

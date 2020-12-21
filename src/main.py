@@ -8,10 +8,11 @@ def main():
     while True:
         try:
             start = time.process_time()
-            print(find_min_cost())
+            find_min_cost()
             end = time.process_time()
             print(f'Time elapsed: {end - start} seconds', file=sys.stderr)
         except:
+            print("oops error")
             break
 
 def a(products, dividers):
