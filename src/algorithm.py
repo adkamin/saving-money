@@ -23,10 +23,10 @@ def find_min_cost():
 
     # saved, used = saving_money(0, len(costs) - 1, 0)
     saved = saving_money_3()
-    # saved1 = saving_money_2()
-    # saved2, used = saving_money(0, len(costs) - 1, 0)
+    saved1 = saving_money_2()
+    saved2, used = saving_money(0, len(costs) - 1, 0)
     # print(f'c={counter}, u={used}', file=sys.stderr)
-    # print(f'{saved1} and {saved2}')
+    print(f'{saved1} and {saved2}')
     return total_cost - saved
 
 def read_input():
@@ -35,7 +35,7 @@ def read_input():
     return nr_products, nr_dividers, costs
 
 def randomizer():
-    nr_products = random.randint(10, 10)
+    nr_products = random.randint(100, 100)
     nr_dividers = random.randint(1, 9)
     costs = [random.randint(1, 20) for a in range(nr_products)]
     print(f'nr_products: {nr_products}')
@@ -59,7 +59,57 @@ def saving_money_3():
                 saved = cost_sum - round5(cost_sum)
                 slices[saved].append((start_point, start_point+size-1))
 
-    print(slices)
+    # compute magic number: (d+1)*2
+    # d+1: pick d+1 slices from slices[2] which sums to magic number
+    # if that doesnt work:
+    # magic number: magic number - 1
+    # d+1: pick d slices from slices[2] and 1 slice from slices[1]
+    # if that doesnt work:
+    # magic number: magic number - 1
+    # d+1: 
+    # d: pick d slices from slices[2]
+
+    # d = 2
+    # mn = 6
+    # 3: 2 2 2
+    # mn = 5
+    # 3: 2 2 1
+    # mn = 4
+    # 3: 2 2 0
+    # 3: 2 1 1
+    # 2: 2 2
+    # mn = 3
+    # 3: 2 1 0
+    # 3: 1 1 1
+    # 3: 2 2 -1
+    # 2: 2 1
+    # mn = 2
+    # 3: 2 2 -2
+    # 3: 2 1 -1
+    # 3: 2 0 0
+    # 3: 1 1 0
+    # 2: 2 0
+    # 2: 1 1
+    # 1: 2
+    # mn = 1
+    # 3: 1 2 -2
+    # 3: 1 1 -1
+    # 3: 1 0 0
+    # 3: 2 0 -1
+
+    # d = 4
+    # mn = 10
+    # 5: 2 2 2 2 2
+    # mn = 9
+    # 5: 2 2 2 2 1
+    # mn = 8
+    # 5: 2 2 2 2 0
+    # 5: 2 2 2 1 1
+    # 4: 2 2 2 2
+
+    # 3 8 13 13 | 4 18 | 4
+
+    # print(slices)
     
     return 0
             
@@ -83,7 +133,7 @@ def saving_money_2():
                 current_saved += saved
                 used_dividers += 1
                 last_div_location = i+1
-                # print(f'div location={last_div_location}')
+                print(f'div location={last_div_location}')
                 if used_dividers >= nr_dividers:
                     # print("break")
                     break
