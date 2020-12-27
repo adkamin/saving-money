@@ -5,10 +5,14 @@ import operator as op
 from functools import reduce
 
 def main():
+    c = 0
     while True:
         try:
+            c += 1
             start = time.process_time()
-            find_min_cost()
+            if(find_min_cost() == -10):
+                print(c)
+                break
             end = time.process_time()
             print(f'Time elapsed: {end - start} seconds', file=sys.stderr)
         except:

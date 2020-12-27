@@ -8,26 +8,34 @@ savings = {}
 counter = 0
 
 debug = False
+# [4, 14, 13, 2, 14, 18] = [4, 4, 3, 2, 4, 3]
+#                           -1 -2 1 
+# -2 -> -1 -> 0 -> 1 -> 2 -> begin
+# 1 2 3 4 5 6
 
 def find_min_cost():
     global nr_products, nr_dividers, costs, savings, counter
-    # nr_products, nr_dividers, costs = read_input()
-    nr_products, nr_dividers, costs = randomizer()
+    nr_products, nr_dividers, costs = read_input()
+    # nr_products, nr_dividers, costs = randomizer()
     savings = {}
     counter = 0
     total_cost = sum(costs)
 
     # Remove multiples of 5
     costs = list(filter(lambda x: x % 5, costs))
+    nr_products = len(costs)
+    print(f'nr_products: {nr_products}')
     print(costs)
 
     # saved, used = saving_money(0, len(costs) - 1, 0)
-    saved = saving_money_3()
-    saved1 = saving_money_2()
-    saved2, used = saving_money(0, len(costs) - 1, 0)
+    # saved = saving_money_3()
+    saved1, used1 = saving_money_2b(0, nr_products-1, nr_dividers, False)
+    saved2, used2 = saving_money(0, len(costs) - 1, 0)
     # print(f'c={counter}, u={used}', file=sys.stderr)
     print(f'{saved1} and {saved2}')
-    return total_cost - saved
+    if(saved1 != saved2):
+        return -10
+    return total_cost - saved1
 
 def read_input():
     nr_products, nr_dividers = [int(d) for d in input().split(' ')]
@@ -35,10 +43,9 @@ def read_input():
     return nr_products, nr_dividers, costs
 
 def randomizer():
-    nr_products = random.randint(100, 100)
-    nr_dividers = random.randint(1, 9)
+    nr_products = random.randint(7, 7)
+    nr_dividers = random.randint(1, 6)
     costs = [random.randint(1, 20) for a in range(nr_products)]
-    print(f'nr_products: {nr_products}')
     print(f'nr_dividers: {nr_dividers}')
     # print(costs)
     return nr_products, nr_dividers, costs
@@ -112,7 +119,91 @@ def saving_money_3():
     # print(slices)
     
     return 0
-            
+
+def solve_stuff():
+    pass
+
+def saving_money_2b(start, end, d, reverse):
+    used_dividers = 0
+    current_best = 2
+    current_saved = 0
+    last_div_location = start
+    if reverse:
+        last_div_location = end
+    previous_div_location = 0
+    div_locs = []
+
+    while used_dividers < d and current_best > 0:
+        if reverse:
+            for i in range(last_div_location, start, -1):
+                print(f'{i}: {costs[i:last_div_location+1]}')
+                cost_sum = sum(costs[i:last_div_location+1])
+                saved = cost_sum - round5(cost_sum)
+                # cost_rest = sum(costs[last_div_location:])
+                # saved_rest = cost_rest - round5(cost_rest)
+                # if saved_rest > saved:
+                #     continue
+                # x | x x x x: saved = 1, saved_rest = 2
+                if saved >= current_best:
+                    current_saved += saved
+                    used_dividers += 1
+                    previous_div_location = last_div_location
+                    last_div_location = i-1
+                    print(last_div_location)
+                    div_locs.append(last_div_location)
+                    if used_dividers >= d:
+                        break
+                    # Rewind step
+                    if previous_div_location-last_div_location > 2:
+                        saved_on_reverse, used_on_reverse = saving_money_2b(last_div_location, previous_div_location-1, d-used_dividers, not reverse)
+                        if saved_on_reverse > saved:
+                            current_saved = current_saved - saved + saved_on_reverse
+                            used_dividers += used_on_reverse
+        else:
+            for i in range(last_div_location, end):
+                cost_sum = sum(costs[last_div_location:i+1])
+                saved = cost_sum - round5(cost_sum)
+                # cost_rest = sum(costs[last_div_location:])
+                # saved_rest = cost_rest - round5(cost_rest)
+                # if saved_rest > saved:
+                #     continue
+                # x | x x x x: saved = 1, saved_rest = 2
+                if saved >= current_best:
+                    current_saved += saved
+                    used_dividers += 1
+                    previous_div_location = last_div_location
+                    last_div_location = i+1
+                    div_locs.append(last_div_location)
+                    if used_dividers >= d:
+                        break
+                    # Rewind step
+                    if last_div_location-previous_div_location > 2:
+                        saved_on_reverse, used_on_reverse = saving_money_2b(previous_div_location, last_div_location-1, d-used_dividers, not reverse)
+                        if saved_on_reverse > saved:
+                            current_saved = current_saved - saved + saved_on_reverse
+                            used_dividers += used_on_reverse
+        current_best -= 1
+
+    # Backward search
+    # print(used_dividers)
+    # if used_dividers < nr_dividers:
+    #     for i in range(len(div_locs)+1):
+    #         start = 0
+    #         end = nr_products
+    #         if i > 0:
+    #             start = div_locs[i-1]
+    #         if i < len(div_locs):
+    #             end = div_locs[i]
+    #         print(f'slice=({start}, {end})')
+
+
+    print(f'div locs: {div_locs}')
+    remaining_sum = 0
+    if reversed:
+        remaining_sum = sum(costs[start:last_div_location])
+    else:
+        remaining_sum = sum(costs[last_div_location:end])
+    return current_saved + (remaining_sum - round5(remaining_sum)), used_dividers
 
 def saving_money_2():
     used_dividers = 0
