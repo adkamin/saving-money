@@ -7,17 +7,13 @@ from functools import reduce
 def main():
     c = 0
     while True:
-        try:
-            c += 1
-            start = time.process_time()
-            if(find_min_cost() == -10):
-                print(c)
-                break
-            end = time.process_time()
-            print(f'Time elapsed: {end - start} seconds', file=sys.stderr)
-        except:
-            print("oops error")
+        c += 1
+        start = time.process_time()
+        if(find_min_cost() == -10):
+            print(c)
             break
+        end = time.process_time()
+        print(f'Time elapsed: {end - start} seconds', file=sys.stderr)
 
 def a(products, dividers):
     total = 0
