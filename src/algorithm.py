@@ -1,11 +1,14 @@
 import sys
 import random
+import time
 
 nr_products = 0
 nr_dividers = 0
 costs = []
 savings = {}
 counter = 0
+
+results_list = []
 
 debug = False
 # [4, 14, 13, 2, 14, 18] = [4, 4, 3, 2, 4, 3]
@@ -14,27 +17,38 @@ debug = False
 # 1 2 3 4 5 6
 
 def find_min_cost():
-    global nr_products, nr_dividers, costs, savings, counter
+    global nr_products, nr_dividers, costs, savings, counter, results_list
     # nr_products, nr_dividers, costs = read_input()
     nr_products, nr_dividers, costs = randomizer()
     savings = {}
     counter = 0
+    results_list = []
     total_cost = sum(costs)
 
     # Remove multiples of 5
     costs = list(filter(lambda x: x % 5, costs))
     nr_products = len(costs)
-    print(f'nr_products: {nr_products}')
-    print(costs)
+    # print(f'nr_products: {nr_products}', file=sys.stderr)
+    # print(costs)
 
     # saved, used = saving_money(0, len(costs) - 1, 0)
     # saved = saving_money_3()
-    saved1 = saving_money_2c()
+    start = time.process_time()
+    saving_money_2c(0, 0, 0, [])
+    mid = time.process_time()
     saved2, used2 = saving_money(0, len(costs) - 1, 0)
+    end = time.process_time()
+
+    # print(f'Greedy algorithm={mid-start} seconds, Dynamic programming={end-mid}', file=sys.stderr)
+
+    saved1, div_locs = max(results_list, key=lambda t: t[0])
+    # print(f'results_list={results_list}')
+    # print(f'div_locs={div_locs}')
+
     # print(f'c={counter}, u={used}', file=sys.stderr)
-    print(f'{saved1} and {saved2}')
-    if(saved1 != saved2):
-        return -10
+    # print(f'{saved1} and {saved2}')
+    # if(saved1 != saved2):
+        # return -10
     return total_cost - saved1
 
 def read_input():
@@ -43,10 +57,10 @@ def read_input():
     return nr_products, nr_dividers, costs
 
 def randomizer():
-    nr_products = random.randint(10, 10)
-    nr_dividers = random.randint(1, 6)
+    nr_products = random.randint(1000, 1000)
+    nr_dividers = random.randint(1, 25)
     costs = [random.randint(1, 5) for a in range(nr_products)]
-    print(f'nr_dividers: {nr_dividers}')
+    # print(f'nr_dividers: {nr_dividers}', file=sys.stderr)
     # print(costs)
     return nr_products, nr_dividers, costs
 
@@ -123,51 +137,56 @@ def saving_money_3():
 def solve_stuff():
     pass
 
-def saving_money_2c():
-    used_dividers = 0
+def saving_money_2c(c, u, l, d):
+    global results_list
+    
+    used_dividers = u
     current_best = 2
-    current_saved = 0
-    last_div_location = 0
+    current_saved = c
+    last_div_location = l
     previous_div_location = 0
-    div_locs = []
+    div_locs = d
 
     while used_dividers < nr_dividers-1 and current_best > 0:
         i = last_div_location
         while used_dividers < nr_dividers-1 and i < nr_products-1:
             cost_sum = sum(costs[last_div_location:i+1])
-            print(f'{last_div_location} {i+1}: {costs[last_div_location:i+1]} {cost_sum} normal')
+            # print(f'{last_div_location} {i+1}: {costs[last_div_location:i+1]} {cost_sum} normal')
             saved = cost_sum - round5(cost_sum)
             # print(f'saved={saved}, i={i}, saved_rest={saved_rest}')
             if saved >= current_best:
                 current_saved += saved
-                print(current_saved)
+                # print(current_saved)
                 used_dividers += 1
                 previous_div_location = last_div_location
                 last_div_location = i+1
                 div_locs.append(last_div_location)
                 if last_div_location - previous_div_location > 2 and saved >= 2:
+                    saving_money_2c(current_saved, used_dividers, last_div_location, div_locs)
                     # Rewind step:
                     for j in range(previous_div_location, last_div_location):
                         cost_sum = sum(costs[previous_div_location:j+1])
-                        print(f'{previous_div_location} {j+1}: {costs[previous_div_location:j+1]} {cost_sum} rewind')
+                        # print(f'{previous_div_location} {j+1}: {costs[previous_div_location:j+1]} {cost_sum} rewind')
                         saved2 = cost_sum - round5(cost_sum)
                         if saved2 >= 1:
                             current_saved = current_saved - saved + saved2
-                            print(current_saved)
+                            # print(current_saved)
                             div_locs.pop()
                             last_div_location = j+1
                             div_locs.append(last_div_location)
                             i = last_div_location-1
                             break
+                current_best = 2
                 if used_dividers >= nr_dividers-1:
-                    print("break")
+                    # print("break")
                     break
             i += 1
         current_best -= 1
-        print(f'current best decreased to {current_best}')
+        # print(f'current best decreased to {current_best}')
     
-    # 2 1 3 3 3 4 2 4 2
-    # solve this ^
+    # when sum of slice equals product of 5 then putting a divider in the slice does not save any money
+    # left half will have saving of x
+    # right half will have saving of -x
 
     max_saved = -4
 
@@ -186,12 +205,12 @@ def saving_money_2c():
             div_locs.append(max_div_loc)
     else:
         max_saved = costs[last_div_location] - round5(costs[last_div_location])
-    
-    print(div_locs)
-    print(f'{current_saved} {max_saved}')
-    return current_saved + max_saved
 
-# 1 4 2 4 2 4 3 1
+    results_list.append((current_saved + max_saved, div_locs))
+    
+    # print(div_locs)
+    # print(f'{current_saved} {max_saved}')
+    # return current_saved + max_saved
 
 def saving_money_2b(start, end, d, reverse):
     used_dividers = 0
