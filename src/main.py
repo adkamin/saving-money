@@ -6,10 +6,11 @@ from functools import reduce
 
 def main():
     while True:
-        try:
-            print(find_min_cost())
-        except:
-            break
+        # try:
+        #     print(find_min_cost())
+        # except:
+        #    break
+        print(find_min_cost())
 
 def a(products, dividers):
     total = 0

@@ -31,10 +31,10 @@ def find_min_cost():
     nr_products = len(costs)
 
     start = time.process_time()
-    saving_money_2c(0, 0, 0, [])
-    # print("------------------------------------------------------------------------------------")
+    saving_money_2c(0, 0, 0, [], [])
+    print("------------------------------------------------------------------------------------")
     mid = time.process_time()
-    # saved2, used2 = saving_money(0, len(costs) - 1, 0)
+    saved2, used2 = saving_money(0, len(costs) - 1, 0)
     end = time.process_time()
 
     # print(f'Greedy algorithm={mid-start} seconds, Dynamic programming={end-mid}', file=sys.stderr)
@@ -44,10 +44,10 @@ def find_min_cost():
     # print(f'div_locs={div_locs}')
 
     # print(f'c={counter}, u={used}', file=sys.stderr)
-    # print(f'{saved1} and {saved2}')
-    # if(saved1 != saved2):
-    #     print("OOOH NOOO")
-    #     return -10
+    print(f'{saved1} and {saved2}')
+    if(saved1 != saved2):
+        print("OOOH NOOO")
+        return -10
     return total_cost - saved1
 
 def read_input():
@@ -56,12 +56,12 @@ def read_input():
     return nr_products, nr_dividers, costs
 
 def randomizer():
-    nr_products = random.randint(2500, 2500)
-    nr_dividers = 25
-    # nr_dividers = random.randint(1,25)
+    nr_products = random.randint(10, 10)
+    # nr_dividers =
+    nr_dividers = random.randint(1,9)
     costs = [random.randint(1, 5) for a in range(nr_products)]
     print(f'nr_dividers: {nr_dividers}')
-    # print(costs)
+    print(costs)
     return nr_products, nr_dividers, costs
 
 def saving_money_3():
@@ -137,7 +137,8 @@ def saving_money_3():
 def solve_stuff():
     pass
 
-def saving_money_2c(c, u, l, d):
+
+def saving_money_2c(c, u, l, d, s):     # s = saved_per_slice
     global results_list, first_time, second_time, remaining_sums, intermediate_sums
     
     used_dividers = u
@@ -146,7 +147,9 @@ def saving_money_2c(c, u, l, d):
     last_div_location = l
     previous_div_location = 0
     div_locs = d
+    starting_point = l
     skip = False
+
 
     # 1 2 | 4 7 8 2 4 6 8 3       rewind
     # 1 2 | 4 7 8 2 | 4 6 | 8 3   normal
@@ -159,38 +162,42 @@ def saving_money_2c(c, u, l, d):
             intermediate_sum = roundsum(intermediate_sum, costs[i])
             if intermediate_sum >= current_best:
                 current_saved += intermediate_sum
+                s.append(current_saved)
                 used_dividers += 1
                 previous_div_location = last_div_location
                 last_div_location = i+1
                 div_locs.append(last_div_location)
-                if last_div_location not in intermediate_sums:
-                    if last_div_location - previous_div_location > 2 and intermediate_sum >= 2:
-                        saving_money_2c(current_saved, used_dividers, last_div_location, div_locs)
-                        # Rewind step:
-                        dummy_sum = intermediate_sum
-                        intermediate_sum = 0
-                        for j in range(previous_div_location, last_div_location):
-                            intermediate_sum = roundsum(intermediate_sum, costs[j])
-                            if intermediate_sum >= 1:
-                                current_saved = current_saved - dummy_sum + intermediate_sum
-                                div_locs.pop()
-                                last_div_location = j+1
-                                div_locs.append(last_div_location)
-                                i = last_div_location-1
-                                intermediate_sum = 0
-                                break
-                    current_best = 2
-                    intermediate_sum = 0
-                    if used_dividers >= nr_dividers-1:
+                if last_div_location in intermediate_sums:
+
+                    lst = list(filter(lambda x: x[0] <= nr_dividers - used_dividers, intermediate_sums[last_div_location]))
+                    if len(lst) > 0:
+                        skip = True
+                        print("memo")
+                        best = max(lst, key=lambda x: x[1])[1] # 3 ... nr_products
+                        current_saved += best                  # 0 ... 3
                         break
-                else:
-                    skip = True
-                    current_saved += intermediate_sums[last_div_location]
+                if last_div_location - previous_div_location > 2 and intermediate_sum >= 2:
+                    saving_money_2c(current_saved, used_dividers, last_div_location, div_locs, s)
+                    # Rewind step:
+                    dummy_sum = intermediate_sum
+                    intermediate_sum = 0
+                    for j in range(previous_div_location, last_div_location):
+                        intermediate_sum = roundsum(intermediate_sum, costs[j])
+                        if intermediate_sum >= 1:
+                            current_saved = current_saved - dummy_sum + intermediate_sum
+                            s.append(current_saved)
+                            div_locs.pop()
+                            last_div_location = j+1
+                            div_locs.append(last_div_location)
+                            i = last_div_location-1
+                            intermediate_sum = 0
+                            break
+                current_best = 2
+                intermediate_sum = 0
+                if used_dividers >= nr_dividers-1:
                     break
             i += 1
         current_best -= 1
-
-    # 1 5 6 | 8 8 3 2 | 4 7 9 0 | 4
 
     max_saved = -4
     mid = time.process_time()
@@ -220,15 +227,34 @@ def saving_money_2c(c, u, l, d):
                 max_saved = costs[last_div_location] - round5(costs[last_div_location])
             remaining_sums[last_div_location] = max_saved
         else:
-            # print("memo!")
             max_saved = remaining_sums[last_div_location]
     else:
         max_saved = 0
     results_list[current_saved + max_saved] = div_locs
-    # TODO memoize
+
+
+    # memoization
+    saved_till_starting_point = 0
+    div_used_from_starting_point = 0
+    if starting_point > 0:
+        index = div_locs.index(starting_point)
+        saved_till_starting_point = s[index]
+        div_used_from_starting_point = used_dividers - len(s[index:])
+    saved_in_slice = current_saved + max_saved - saved_till_starting_point
+    if starting_point in intermediate_sums:
+        intermediate_sums[starting_point].append((div_used_from_starting_point, saved_in_slice))
+    else:
+        intermediate_sums[starting_point] = [(div_used_from_starting_point, saved_in_slice)]
     end = time.process_time()
-    # print(f'First part={mid-start}, second part={end-mid}')
-    # print(f'results={results_list}')
+
+    print(f'memo for first part: intermediate sums = {intermediate_sums}')
+    print(f'memo for second part: resulting sums = {remaining_sums}')
+    print(f'results list = {results_list}')
+
+    # 1 2 3 4 5 6 7 8 9
+    # 1 | 1 | 3 4 5 6 | 7 8 9)
+    # s = [1,2,4,5,7,8]
+    # div_locs = [1,2,6]
 
 def saving_money_2b(start, end, d, reverse):
     used_dividers = 0
@@ -418,3 +444,4 @@ def append_savings(i, j, c, d):
             savings[(i, j)][c] = d
     else:
         savings[(i, j)] = {c: d}
+
