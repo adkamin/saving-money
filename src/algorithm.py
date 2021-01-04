@@ -235,7 +235,7 @@ def saving_money_2c(c, u, l, s):  # s = saved_per_slice
     if starting_point > 0:
         index = prev_used_div - used_dividers
         saved_till_starting_point = s[index]
-        div_used_from_starting_point = used_dividers - (len(s[:index])) +1
+        div_used_from_starting_point = used_dividers - (len(s[:index]))
     saved_in_slice = current_saved + max_saved - saved_till_starting_point
     if starting_point in intermediate_sums:
         intermediate_sums[starting_point].append((div_used_from_starting_point, saved_in_slice))
