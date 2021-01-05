@@ -87,9 +87,9 @@ def find_min_cost():
         print(f'wrong result')
         print(f'OOH NOOs: {oohnoos}')
         print(f'Samples: {samples}')
-        print(nr_products)
-        print(nr_dividers)
-        print(costs)
+        # print(nr_products)
+        # print(nr_dividers)
+        # print(costs)
         return -10
     print(f'OOH NOOs: {oohnoos}')
     print(f'Samples: {samples}')
@@ -101,8 +101,8 @@ def read_input():
     return nr_products, nr_dividers, costs
 
 def randomizer():
-    nr_products = random.randint(50,50)
-    nr_dividers = random.randint(20, 20)
+    nr_products = random.randint(100,100)
+    nr_dividers = random.randint(25, 25)
     costs = [random.randint(1, 4) for a in range(nr_products)]
     # print(f'nr_products: {nr_products}')
     # print(f'nr_dividers: {nr_dividers}')
@@ -761,7 +761,7 @@ def rewrite_attempt2(c, u, l, d, s, us):  # s = saved_per_slice
 
     if start_point in intermediate_sums:
         lst = list(
-            filter(lambda x: x[1] <= (nr_dividers - used_dividers) and x[2] == used_dividers, intermediate_sums[start_point]))
+            filter(lambda x: x[1] == used_dividers, intermediate_sums[start_point]))
         if len(lst) > 0:
             skip = True
             best = max(lst, key=lambda x: x[0])[0]
@@ -870,10 +870,11 @@ def rewrite_attempt2(c, u, l, d, s, us):  # s = saved_per_slice
         # simple way
         saved_from_start += max_saved
         # print(f'from point {start_point} we saved {saved_from_start} by using {used_from_start} dividers')
-        add_to_intermediate_sums(start_point, saved_from_start, used_from_start, used_dividers)
+        used_till_start = used_dividers - used_from_start + 1
+        add_to_intermediate_sums(start_point, saved_from_start, used_till_start)
 
-def add_to_intermediate_sums(start_point, saved_from_start, used_from_start, used):
+def add_to_intermediate_sums(start_point, saved_from_start, used):
     if start_point in intermediate_sums:
-        intermediate_sums[start_point].append((saved_from_start, used_from_start, used))
+        intermediate_sums[start_point].append((saved_from_start, used))
     else:
-        intermediate_sums[start_point] = [(saved_from_start, used_from_start, used)]
+        intermediate_sums[start_point] = [(saved_from_start, used)]
