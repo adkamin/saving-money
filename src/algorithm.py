@@ -29,7 +29,7 @@ def find_min_cost():
     results_list = {}
     remaining_sums = {}
     intermediate_sums = {}
-    max_result = 0
+    max_result = -2
     counter = 0
     stop_algorithm = False
 
@@ -39,7 +39,7 @@ def find_min_cost():
     magic_number = (nr_dividers+1)*2
 
     start = time.process_time()
-    rewrite_attempt2(0, 0, 0)
+    last_attempt(0, 0, 0)
     mid = time.process_time()
     # saved2, used2 = saving_money(0, len(costs) - 1, 0)
     end = time.process_time()
@@ -79,15 +79,14 @@ def process_input():
             cost_index += 1
     return total_cost
 
-
 def read_input():
     nr_products, nr_dividers = [int(d) for d in input().split(' ')]
     costs = [int(c) for c in input().split(' ')]
     return nr_products, nr_dividers, costs
 
 def randomizer():
-    nr_products = random.randint(10,10)
-    nr_dividers = random.randint(5, 5)
+    nr_products = random.randint(2500,2500)
+    nr_dividers = random.randint(25, 25)
     costs = [random.randint(1, 4) for a in range(nr_products)]
     # print(f'nr_products: {nr_products}')
     # print(f'nr_dividers: {nr_dividers}')
@@ -612,3 +611,107 @@ def rewrite_attempt2(c, u, l):
 
     if max_result >= magic_number:
         stop_algorithm = True
+
+def last_attempt(c, u, l):  # s = saved_per_slice
+    global results_list, remaining_sums, intermediate_sums, max_result, stop_algorithm
+
+    if stop_algorithm:
+        # print("Let's call it a day")
+        return
+   
+    if (l, c, u) in intermediate_sums:
+        # print("We're done here")
+        return
+
+    used_dividers = u
+    current_best = 2
+    current_saved = c
+    last_div_location = l
+    previous_div_location = 0
+
+    start_point = l
+    saved_from_start = 0
+    used_from_start = 0
+
+    rewind = False
+
+    while used_dividers < nr_dividers - 1 and current_best > 0 and not skip:
+        intermediate_sum = 0
+        i = last_div_location
+        while used_dividers < nr_dividers - 1 and i < nr_products - 1:
+            intermediate_sum = roundsum(intermediate_sum, costs[i])
+            # print(f'{last_div_location} {i + 1}: {costs[last_div_location:i + 1]} {intermediate_sum} normal {current_best}')
+            if intermediate_sum >= current_best:
+                current_saved += intermediate_sum
+                saved_from_start += intermediate_sum
+                used_dividers += 1
+                used_from_start += 1
+                previous_div_location = last_div_location
+                last_div_location = i + 1
+
+                if last_div_location - previous_div_location > 2 and intermediate_sum >= 2 and not rewind:
+                    last_attempt(current_saved, used_dividers, last_div_location)
+                    # Rewind
+                    i = previous_div_location
+                    last_div_location = i
+                    current_saved -= intermediate_sum
+                    saved_from_start -= intermediate_sum
+                    intermediate_sum = 0
+                    current_best = 1
+                    used_dividers -= 1
+                    used_from_start -= 1
+                    rewind = True
+                    continue
+                rewind = False
+                current_best = 2
+                intermediate_sum = 0
+                if used_dividers >= nr_dividers - 1:
+                    break
+            i += 1
+        current_best -= 1
+
+    div_placed = False
+
+    max_saved = -4
+    if last_div_location not in remaining_sums:
+        if last_div_location + 1 < nr_products:
+            total_cost = sum(costs[last_div_location:])
+            total_saved = roundsum(0, total_cost)
+            max_saved = total_saved
+            left_saved = 0
+            if total_saved != 0:
+                for i in range(last_div_location + 1, nr_products):
+                    left_saved = roundsum(left_saved, costs[i - 1])
+                    right_saved = roundsum(total_saved, -left_saved)
+                    combined_saved = left_saved + right_saved
+                    if combined_saved > max_saved:
+                        div_placed = True
+                        max_saved = combined_saved
+                        if max_saved >= 4:
+                            break
+        else:
+            max_saved = costs[last_div_location] - round5(costs[last_div_location])
+        remaining_sums[last_div_location] = (max_saved, div_placed)
+    else:
+        (max_saved, place_div) = remaining_sums[last_div_location]
+        if place_div:
+            used_dividers += 1
+            used_from_start += 1
+
+    if div_placed:
+        used_dividers += 1
+        used_from_start += 1
+
+    max_result = max(max_result, current_saved + max_saved)
+
+    if max_result >= magic_number:
+        stop_algorithm = True
+
+    saved_from_start += max_saved
+    current_saved += max_saved
+    used_till_start = used_dividers - used_from_start
+    saved_till_start = current_saved - saved_from_start
+    add_to_intermediate_sums(start_point, saved_till_start, used_till_start)
+
+def add_to_intermediate_sums(start_point, saved_till_start, used_till_start):
+    intermediate_sums[(start_point, saved_till_start, used_till_start)] = True
