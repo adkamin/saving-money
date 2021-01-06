@@ -36,6 +36,7 @@ def read_input():
     costs = [int(c) for c in input().split(' ')]
     return nr_products, nr_dividers, costs
 
+
 # resets some variables for the new sample
 # O(1)
 def reset_values():
@@ -45,6 +46,7 @@ def reset_values():
     computed = {}
     max_result = -2
     stop_algorithm = False
+
 
 # removes multiples of 5, performs modulo 5 on each value and returns the total cost of the costs array
 # O(n)
@@ -61,6 +63,7 @@ def process_input():
             cost_index += 1
     return total_cost
 
+
 # returns a random sample
 # O(n*log m) where n = nr_products and m is in random.randint(1,m)
 def randomizer():
@@ -71,6 +74,7 @@ def randomizer():
     # print(f'nr_dividers: {nr_dividers}')
     # print(costs)
     return nr_products, nr_dividers, costs
+
 
 # computes the maximum amount possible to save given the list of costs and the maximum number of dividers
 # O(???)
@@ -234,6 +238,7 @@ def dynamic_approach(i, j, d):
 # O(1)
 def round5(x):
     return 5 * round(x / 5)
+
 
 # adds the computed value into the dictionary (for dynamic approach)
 # O(1)
