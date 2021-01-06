@@ -11,6 +11,7 @@ def main():
         # if result == -10:
         #     break
         # break
+        # print(find_min_cost())
 
 if __name__ == '__main__':
     main()

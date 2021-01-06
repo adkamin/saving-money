@@ -9,7 +9,7 @@ savings = {}
 results_list = {}
 remaining_sums = {}
 intermediate_sums = {}
-max_result = 0
+max_result = -2
 samples = 0
 oohnoos = 0
 counter = 0
@@ -22,14 +22,14 @@ def roundsum(intermediate_sum, next_value):
 def find_min_cost():
     global nr_products, nr_dividers, costs, savings, results_list, remaining_sums
     global intermediate_sums, samples, oohnoos, counter, max_result, magic_number, stop_algorithm
-    nr_products, nr_dividers, costs = read_input()
-    # nr_products, nr_dividers, costs = randomizer()
+    # nr_products, nr_dividers, costs = read_input()
+    nr_products, nr_dividers, costs = randomizer()
 
     savings = {}
     results_list = {}
     remaining_sums = {}
     intermediate_sums = {}
-    max_result = 0
+    max_result = -2
     counter = 0
     stop_algorithm = False
 
@@ -38,11 +38,8 @@ def find_min_cost():
     nr_products = len(costs)
     magic_number = (nr_dividers+1)*2
 
-    start = time.process_time()
-    rewrite_attempt2(0, 0, 0)
-    mid = time.process_time()
+    rewrite_attempt(0, 0, 0, [])
     # saved2, used2 = saving_money(0, len(costs) - 1, 0)
-    end = time.process_time()
 
     # print(f'Greedy algorithm={mid-start} seconds, Dynamic programming={end-mid}', file=sys.stderr)
 
@@ -86,8 +83,8 @@ def read_input():
     return nr_products, nr_dividers, costs
 
 def randomizer():
-    nr_products = random.randint(10,10)
-    nr_dividers = random.randint(5, 5)
+    nr_products = random.randint(2500,2500)
+    nr_dividers = random.randint(1, 25)
     costs = [random.randint(1, 4) for a in range(nr_products)]
     # print(f'nr_products: {nr_products}')
     # print(f'nr_dividers: {nr_dividers}')
@@ -414,7 +411,10 @@ def append_savings(i, j, c, d):
         savings[(i, j)] = {c: d}
 
 def rewrite_attempt(c, u, l, s):  # s = saved_per_slice
-    global results_list, remaining_sums, intermediate_sums
+    global results_list, remaining_sums, intermediate_sums, max_result, stop_algorithm
+
+    if stop_algorithm:
+        return
 
     # print(f"------------------ {l}")
     # print(f'start of call: {s} {intermediate_sums}')
@@ -508,7 +508,13 @@ def rewrite_attempt(c, u, l, s):  # s = saved_per_slice
                 used_dividers += 1
     else:
         max_saved = 0
-    results_list[current_saved + max_saved] = used_dividers  # we dont need to save anything special here, we just need the index
+
+    max_result = max(max_result, current_saved + max_saved)
+
+    if max_result >= magic_number:
+        stop_algorithm = True
+        return
+    # results_list[current_saved + max_saved] = used_dividers  # we dont need to save anything special here, we just need the index
 
     if div_placed:
         # I don't think it matters what the integer is that we're appending s with here, 
@@ -532,12 +538,13 @@ def rewrite_attempt(c, u, l, s):  # s = saved_per_slice
         #     print(f'current_saved={current_saved}: max_saved={max_saved} - saved_till_starting_point={saved_till_starting_point}')
         #     print(f's:{s}')
         #     print(f'lets save sp={starting_point} (u, s): {(div_used_from_starting_point, saved_in_slice)}')
-        if starting_point in intermediate_sums:
-            # pass
-            intermediate_sums[starting_point].append((div_used_from_starting_point, saved_in_slice))
-        else:
-            # pass
-            intermediate_sums[starting_point] = [(div_used_from_starting_point, saved_in_slice)]
+        if (div_used_from_starting_point+1)*2 == saved_in_slice:
+            if starting_point in intermediate_sums:
+                # pass
+                intermediate_sums[starting_point].append((div_used_from_starting_point, saved_in_slice))
+            else:
+                # pass
+                intermediate_sums[starting_point] = [(div_used_from_starting_point, saved_in_slice)]
 
 def rewrite_attempt2(c, u, l):
     global results_list, remaining_sums, intermediate_sums, max_result, stop_algorithm
@@ -609,6 +616,8 @@ def rewrite_attempt2(c, u, l):
         max_saved = 0
 
     max_result = max(max_result, current_saved + max_saved)
+
+
 
     if max_result >= magic_number:
         stop_algorithm = True
