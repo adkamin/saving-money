@@ -3,7 +3,6 @@ import random
 nr_products = 0            # the number of products
 nr_dividers = 0            # the maximum number of dividers
 costs = []                 # the list of costs of products
-remaining_sums = {}        # the dictionary for memoization of the last slice where one last divider can be used
 computed = {}              # the dictionary for saving which slices were already computed to avoid double work
 max_result = -2            # the maximum result saved so far with the algorithm
 magic_number = 0           # the maximum amount possible to save with a given number of dividers
@@ -15,9 +14,9 @@ savings = {}               # the dictionary for memoization in the dynamic progr
 # reads and processes the input, calls the greedy algorithm and returns the final amount to pay
 # O(???)
 def find_min_cost():
-    global nr_products, nr_dividers, costs, savings, remaining_sums, computed,  max_result, magic_number, stop_algorithm
-    # nr_products, nr_dividers, costs = read_input()
-    nr_products, nr_dividers, costs = randomizer()
+    global nr_products, nr_dividers, costs, savings, computed,  max_result, magic_number, stop_algorithm
+    nr_products, nr_dividers, costs = read_input()
+    # nr_products, nr_dividers, costs = randomizer()
     reset_values()
     total_cost = process_input()
     nr_products = len(costs)
@@ -40,9 +39,8 @@ def read_input():
 # resets some variables for the new sample
 # O(1)
 def reset_values():
-    global savings, remaining_sums, computed, max_result, stop_algorithm
+    global savings, computed, max_result, stop_algorithm
     savings = {}
-    remaining_sums = {}
     computed = {}
     max_result = -2
     stop_algorithm = False
@@ -67,7 +65,7 @@ def process_input():
 # returns a random sample
 # O(n*log m) where n = nr_products and m is in random.randint(1,m)
 def randomizer():
-    nr_products = random.randint(2500, 2500)
+    nr_products = random.randint(100, 100)
     nr_dividers = random.randint(25, 25)
     costs = [random.randint(1, 4) for a in range(nr_products)]
     # print(f'nr_products: {nr_products}')
@@ -79,7 +77,7 @@ def randomizer():
 # computes the maximum amount possible to save given the list of costs and the maximum number of dividers
 # O(???)
 def greedy_approach(c, u, l):
-    global remaining_sums, computed, max_result, stop_algorithm
+    global computed, max_result, stop_algorithm
 
     if stop_algorithm or (l, c, u) in computed:
         return
@@ -92,10 +90,10 @@ def greedy_approach(c, u, l):
     previous_div_location = saved_from_start = used_from_start = 0
 
     # computing the maximum saved amount for the slices until the very last divider can be placed
-    while used_dividers < nr_dividers - 1 and current_best > 0:
+    while used_dividers < nr_dividers and current_best > 0:
         intermediate_sum = 0
         i = last_div_location
-        while used_dividers < nr_dividers - 1 and i < nr_products - 1:
+        while used_dividers < nr_dividers and i < nr_products - 1:
             intermediate_sum = roundsum(intermediate_sum, costs[i])
             if intermediate_sum >= current_best:
                 current_saved += intermediate_sum
@@ -108,9 +106,6 @@ def greedy_approach(c, u, l):
                     # branch 1: continue saving 2 cents
                     greedy_approach(current_saved, used_dividers, last_div_location)
                     # branch 2: rewind and try to save 1 cent first
-                    if stop_algorithm or (last_div_location, current_saved, used_dividers) in computed:
-                        print("it happens")
-                        return
                     i = previous_div_location
                     last_div_location = i
                     current_saved -= intermediate_sum
@@ -124,55 +119,26 @@ def greedy_approach(c, u, l):
                 rewind = False
                 current_best = 2
                 intermediate_sum = 0
-                if used_dividers >= nr_dividers - 1:
+                if used_dividers >= nr_dividers:
                     break
             i += 1
         current_best -= 1
 
-    # computing the maximum saved amount for the last slice where one last divider can be used
-    div_placed = False
-    max_saved = -4
-    if last_div_location not in remaining_sums:
-        if last_div_location + 1 < nr_products:
-            total_cost = sum(costs[last_div_location:])
-            total_saved = roundsum(0, total_cost)
-            max_saved = total_saved
-            left_saved = 0
-            if total_saved != 0:
-                for i in range(last_div_location + 1, nr_products):
-                    left_saved = roundsum(left_saved, costs[i - 1])
-                    right_saved = roundsum(total_saved, -left_saved)
-                    combined_saved = left_saved + right_saved
-                    if combined_saved > max_saved:
-                        div_placed = True
-                        max_saved = combined_saved
-                        if max_saved >= 4:
-                            break
-        else:
-            max_saved = costs[last_div_location] - round5(costs[last_div_location])
-        remaining_sums[last_div_location] = (max_saved, div_placed)
-    else:
-        (max_saved, place_div) = remaining_sums[last_div_location]
-        if place_div:
-            used_dividers += 1
-            used_from_start += 1
-
-    if div_placed:
-        used_dividers += 1
-        used_from_start += 1
-
-    max_result = max(max_result, current_saved + max_saved)
+    # now we compute for the remaining slice how much money is saved/lost. And add it to current_saved + saved_from_start
+    total = sum(costs[last_div_location:])
+    remainder = total - round5(total)
+    saved_from_start += remainder
+    current_saved += remainder
 
     if max_result >= magic_number:
         stop_algorithm = True
 
     # saving that the given branch was now computed, so that possible double work in other calls is avoided
-    saved_from_start += max_saved
-    current_saved += max_saved
     used_till_start = used_dividers - used_from_start
     saved_till_start = current_saved - saved_from_start
     computed[(start_point, saved_till_start, used_till_start)] = True
 
+    max_result = max(max_result, current_saved)
 
 # returns the saved amount computed from intermediate saved amount and the current cost
 # O(1)
