@@ -12,7 +12,6 @@ savings = {}               # the dictionary for memoization in the dynamic progr
 
 
 # reads and processes the input, calls the greedy algorithm and returns the final amount to pay
-# O(???)
 def find_min_cost():
     global nr_products, nr_dividers, costs, savings, computed,  max_result, magic_number, stop_algorithm
     nr_products, nr_dividers, costs = read_input()
@@ -29,7 +28,6 @@ def find_min_cost():
 
 
 # reads the input from stdin and saves it into nr_products, nr_dividers and costs
-# O(n)
 def read_input():
     nr_products, nr_dividers = [int(d) for d in input().split(' ')]
     costs = [int(c) for c in input().split(' ')]
@@ -37,7 +35,6 @@ def read_input():
 
 
 # resets some variables for the new sample
-# O(1)
 def reset_values():
     global savings, computed, max_result, stop_algorithm
     savings = {}
@@ -47,7 +44,6 @@ def reset_values():
 
 
 # removes multiples of 5, performs modulo 5 on each value and returns the total cost of the costs array
-# O(n)
 def process_input():
     total_cost = 0
     cost_index = 0
@@ -63,7 +59,6 @@ def process_input():
 
 
 # returns a random sample
-# O(n*log m) where n = nr_products and m is in random.randint(1,m)
 def randomizer():
     nr_products = random.randint(100, 100)
     nr_dividers = random.randint(25, 25)
@@ -75,7 +70,6 @@ def randomizer():
 
 
 # computes the maximum amount possible to save given the list of costs and the maximum number of dividers
-# O(???)
 def greedy_approach(c, u, l):
     global computed, max_result, stop_algorithm
 
@@ -140,14 +134,13 @@ def greedy_approach(c, u, l):
 
     max_result = max(max_result, current_saved)
 
+
 # returns the saved amount computed from intermediate saved amount and the current cost
-# O(1)
 def roundsum(intermediate_sum, current_cost):
     return ((intermediate_sum + current_cost + 2) % 5) - 2
 
 # returns the maximum amount possible to save and the number of dividers used to save such amount
 # given the list of costs and the maximum number of dividers
-# O(???)
 def dynamic_approach(i, j, d):
     # memoization step:
     if (i, j) in savings:
@@ -203,13 +196,11 @@ def dynamic_approach(i, j, d):
 
 
 # returns the number rounded to the closest multiple of 5 (for dynamic approach)
-# O(1)
 def round5(x):
     return 5 * round(x / 5)
 
 
 # adds the computed value into the dictionary (for dynamic approach)
-# O(1)
 def append_savings(i, j, c, d):
     if (i, j) in savings:
         if c in savings[(i, j)]:
